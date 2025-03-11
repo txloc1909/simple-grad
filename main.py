@@ -65,6 +65,19 @@ class Tensor:
         
         out._backward = _backward
         return out
+
+    def __mul__(self, other):
+        assert isinstance(other, Tensor), "Operand must be a Tensor"
+        out = Tensor(self.data * other.data, requires_grad=self.requires_grad or other.requires_grad)
+
+        def _backward():
+            if self.requires_grad:
+                self.grad += other.data * out.grad
+            if other.requires_grad:
+                other.grad += self.data * out.grad
+
+        out._backward = _backward
+        return out
     
     def backward(self):
         # TODO: implement backprop

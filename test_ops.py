@@ -26,3 +26,17 @@ def test_matmul():
     result = matmul(Tensor.from_torch(a), Tensor.from_torch(b))
     np.testing.assert_allclose(result.data, expected.numpy(), 
                                rtol=1.3e-6, atol=1e-5)
+
+
+def test_elemwise_add():
+    a, b = torch.rand((4, 4)), torch.rand((4, 4))
+    expected = a + b
+    result = Tensor.from_torch(a) + Tensor.from_torch(b)
+    np.testing.assert_allclose(result.data, expected.numpy())
+
+
+def test_elemwise_mul():
+    a, b = torch.rand((4, 4)), torch.rand((4, 4))
+    expected = a * b
+    result = Tensor.from_torch(a) * Tensor.from_torch(b)
+    np.testing.assert_allclose(result.data, expected.numpy())
