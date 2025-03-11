@@ -48,6 +48,10 @@ class Tensor:
     @staticmethod
     def from_torch(tensor):
         return Tensor(tensor.detach().cpu().numpy(), requires_grad=tensor.requires_grad)
+
+    def to_torch(self):
+        return torch.tensor(self.data, requires_grad=self.requires_grad,
+                            dtype=torch.float32)
     
     def __add__(self, other):
         assert isinstance(other, Tensor), "Operand must be a Tensor"
