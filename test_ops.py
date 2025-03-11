@@ -51,14 +51,34 @@ def test_matmul():
 
 
 def test_elemwise_add():
-    a, b = torch.rand((4, 4)), torch.rand((4, 4))
-    expected = a + b
-    result = Tensor.from_torch(a) + Tensor.from_torch(b)
-    np.testing.assert_allclose(result.data, expected.numpy())
+    pt_a = torch.rand((4, 4), requires_grad=True)
+    pt_b = torch.rand((4, 4), requires_grad=True)
+    a = Tensor.from_torch(pt_a)
+    b = Tensor.from_torch(pt_b)
+
+    expected = pt_a + pt_b
+    result = a + b
+    np.testing.assert_allclose(result.data, expected.detach().numpy(), 
+                               rtol=1.3e-6, atol=1e-5)
+
+    expected.backward(torch.ones_like(expected))
+    result.backward()
+    np.testing.assert_allclose(a.grad.data, pt_a.grad.detach().numpy())
+    np.testing.assert_allclose(b.grad.data, pt_b.grad.detach().numpy())
 
 
 def test_elemwise_mul():
-    a, b = torch.rand((4, 4)), torch.rand((4, 4))
-    expected = a * b
-    result = Tensor.from_torch(a) * Tensor.from_torch(b)
-    np.testing.assert_allclose(result.data, expected.numpy())
+    pt_a = torch.rand((4, 4), requires_grad=True)
+    pt_b = torch.rand((4, 4), requires_grad=True)
+    a = Tensor.from_torch(pt_a)
+    b = Tensor.from_torch(pt_b)
+
+    expected = pt_a * pt_b
+    result = a * b
+    np.testing.assert_allclose(result.data, expected.detach().numpy(), 
+                               rtol=1.3e-6, atol=1e-5)
+
+    expected.backward(torch.ones_like(expected))
+    result.backward()
+    np.testing.assert_allclose(a.grad.data, pt_a.grad.detach().numpy())
+    np.testing.assert_allclose(b.grad.data, pt_b.grad.detach().numpy())
