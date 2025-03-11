@@ -10,6 +10,7 @@ def relu(tensor):
             tensor.grad += (tensor.data > 0) * out.grad
     
     out._backward = _backward
+    out._prev = {tensor, }
     return out
 
 
@@ -21,6 +22,7 @@ def sigmoid(tensor):
             tensor.grad += out.data * (1 - out.data) * out.grad
     
     out._backward = _backward
+    out._prev = {tensor, }
     return out
 
 
@@ -35,6 +37,7 @@ def matmul(tensor1, tensor2):
             tensor2.grad += tensor1.data.T @ out.grad
     
     out._backward = _backward
+    out._prev = {tensor1, tensor2}
     return out
 
 
@@ -44,6 +47,10 @@ class Tensor:
         self.requires_grad = requires_grad
         self.grad = np.zeros_like(self.data) if requires_grad else None
         self._backward = lambda: None
+        self._prev = set()
+
+    def __repr__(self):
+        return f"Tensor({self.data}, requires_grad={self.requires_grad})"
     
     @staticmethod
     def from_torch(tensor):
@@ -64,6 +71,7 @@ class Tensor:
                 other.grad += out.grad
         
         out._backward = _backward
+        out._prev = {self, other}
         return out
 
     def __mul__(self, other):
@@ -77,12 +85,26 @@ class Tensor:
                 other.grad += self.data * out.grad
 
         out._backward = _backward
+        out._prev = {self, other}
         return out
     
     def backward(self):
-        # TODO: implement backprop
+        topo = []
+        visited = set()
+        def build_topo(node):
+            if node not in visited:
+                visited.add(node)
+                print(f"Visited {node}")
+                for parent in node._prev:
+                    build_topo(parent)
+
+                topo.append(node)
+
+        build_topo(self)
+
         self.grad = np.ones_like(self.data)
-        self._backward()
+        for tensor in reversed(topo):
+            tensor._backward()
 
 
 class Linear:
