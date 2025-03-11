@@ -20,11 +20,17 @@ def test_relu():
 
 
 def test_sigmoid():
-    x = torch.rand((2, 2))
-    expected = F.sigmoid(x)
-    result = sigmoid(Tensor.from_torch(x))
-    np.testing.assert_allclose(result.data, expected.numpy(),
+    pt_x = torch.rand((2, 2), requires_grad=True)
+    x = Tensor.from_torch(pt_x)
+
+    expected = F.sigmoid(pt_x)
+    result = sigmoid(x)
+    np.testing.assert_allclose(result.data, expected.detach().numpy(),
                                rtol=1.3e-6, atol=1e-5)
+
+    expected.backward(torch.ones_like(expected))
+    result.backward()
+    np.testing.assert_allclose(x.grad.data, pt_x.grad.detach().numpy())
 
 def test_matmul():
     a, b = torch.rand((3, 4)), torch.rand((4, 5))
