@@ -32,12 +32,22 @@ def test_sigmoid():
     result.backward()
     np.testing.assert_allclose(x.grad.data, pt_x.grad.detach().numpy())
 
+
 def test_matmul():
-    a, b = torch.rand((3, 4)), torch.rand((4, 5))
-    expected = a @ b
-    result = matmul(Tensor.from_torch(a), Tensor.from_torch(b))
-    np.testing.assert_allclose(result.data, expected.numpy(), 
+    pt_a = torch.rand((3, 4), requires_grad=True)
+    pt_b = torch.rand((4, 5), requires_grad=True)
+    a = Tensor.from_torch(pt_a)
+    b = Tensor.from_torch(pt_b)
+
+    expected = pt_a @ pt_b
+    result = matmul(a, b)
+    np.testing.assert_allclose(result.data, expected.detach().numpy(), 
                                rtol=1.3e-6, atol=1e-5)
+
+    expected.backward(torch.ones_like(expected))
+    result.backward()
+    np.testing.assert_allclose(a.grad.data, pt_a.grad.detach().numpy())
+    np.testing.assert_allclose(b.grad.data, pt_b.grad.detach().numpy())
 
 
 def test_elemwise_add():
