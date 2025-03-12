@@ -2,8 +2,8 @@ import numpy as np
 import torch
 from torch.nn import functional as F 
 
-from main import Tensor
-from main import relu, sigmoid, matmul
+from simplegrad.tensor import Tensor
+from simplegrad.ops import relu, sigmoid, matmul
 
 
 def test_autograd():

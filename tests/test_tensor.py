@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from main import Tensor
+from simplegrad.tensor import Tensor
 
 
 def test_from_torch():

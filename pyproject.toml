@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simplegrad"
+version = "0.1.0"
+description = "Simple autograd library"
+authors = [
+    { name = "Tran Xuan Loc", email = "tranxuanloc19920@gmail.com" }
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = { file = "LICENSE" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
