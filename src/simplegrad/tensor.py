@@ -20,6 +20,17 @@ class Tensor:
     def to_torch(self):
         return torch.tensor(self.data, requires_grad=self.requires_grad,
                             dtype=torch.float32)
+
+    def transpose(self):
+        out = Tensor(np.swapaxes(self.data, -1, -2), requires_grad=self.requires_grad) 
+
+        def _backward():
+            if self.requires_grad:
+                self.grad += np.swapaxes(out.grad, -1, -2)
+
+        out._backward = _backward 
+        out._prev = {self, }
+        return out 
     
     def __add__(self, other):
         assert isinstance(other, Tensor), "Operand must be a Tensor"
@@ -55,7 +66,6 @@ class Tensor:
         def build_topo(node):
             if node not in visited:
                 visited.add(node)
-                print(f"Visited {node}")
                 for parent in node._prev:
                     build_topo(parent)
 

@@ -12,14 +12,16 @@ def test_autograd():
     c = Tensor(np.random.randn(3, 3), requires_grad=True)
     d = Tensor(np.random.randn(3, 3), requires_grad=True)
 
-    z1 = matmul(a, b)
+    b_T = b.transpose()
+    z1 = matmul(a, b_T)
     z2 = z1 + c
     z3 = z2 * d
     z4 = relu(z3)
     res = sigmoid(z4)
 
     pt_a, pt_b, pt_c, pt_d = a.to_torch(), b.to_torch(), c.to_torch(), d.to_torch()
-    pt_z1 = pt_a @ pt_b
+    pt_b_T = pt_b.T
+    pt_z1 = pt_a @ pt_b_T
     pt_z2 = pt_z1 + pt_c
     pt_z3 = pt_z2 * pt_d
     pt_z4 = F.relu(pt_z3)
