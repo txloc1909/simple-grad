@@ -60,8 +60,8 @@ class Tensor:
         out._prev = {self, other}
         return out
 
-    def __neg__(self, other):
-        pass
+    def __neg__(self):
+        return self * Tensor(-np.ones_like(self.data), requires_grad=False)
 
     def __mul__(self, other):
         assert isinstance(other, Tensor), "Operand must be a Tensor"
@@ -78,7 +78,20 @@ class Tensor:
         return out
 
     def __truediv__(self, other):
-        pass
+        return self * (other ** (-1))
+
+    def __pow__(self, other):
+        assert isinstance(other, (int, float)), "Operant must be a Scalar"
+        out = Tensor(self.data ** other, requires_grad=self.requires_grad) 
+
+        def _backward():
+            if self.requires_grad:
+                self.grad += (other * self.data**(other-1)) * out.grad
+
+        out._backward = _backward 
+        out._prev = {self, }
+        return out
+
     
     def backward(self):
         topo = []
