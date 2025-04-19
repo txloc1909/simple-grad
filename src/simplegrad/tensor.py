@@ -46,6 +46,23 @@ class Tensor:
         out._prev = {self, other}
         return out
 
+    def __sub__(self, other):
+        assert isinstance(other, Tensor), "Operand must be a Tensor"
+        out = Tensor(self.data - other.data, requires_grad=self.requires_grad or other.requires_grad)
+        
+        def _backward():
+            if self.requires_grad:
+                self.grad += out.grad
+            if other.requires_grad:
+                other.grad -= out.grad
+        
+        out._backward = _backward
+        out._prev = {self, other}
+        return out
+
+    def __neg__(self, other):
+        pass
+
     def __mul__(self, other):
         assert isinstance(other, Tensor), "Operand must be a Tensor"
         out = Tensor(self.data * other.data, requires_grad=self.requires_grad or other.requires_grad)
@@ -59,6 +76,9 @@ class Tensor:
         out._backward = _backward
         out._prev = {self, other}
         return out
+
+    def __truediv__(self, other):
+        pass
     
     def backward(self):
         topo = []
