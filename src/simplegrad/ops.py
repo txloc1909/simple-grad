@@ -43,3 +43,15 @@ def matmul(tensor1, tensor2):
     return out
 
 
+def softmax(x): 
+    exp_x = np.exp(x.data - np.max(x.data, axis=-1, keepdims=True))
+    sum_exp = np.sum(exp_x, axis=-1, keepdims=True)
+    out = Tensor(exp_x / sum_exp, requires_grad=x.requires_grad)
+
+    def _backward():
+        if x.requires_grad:
+            x.grad += out.data * (out.grad - np.sum(out.grad * out.data, axis=-1, keepdims=True))
+
+    out._backward = _backward
+    out._prev = {x, }
+    return out
