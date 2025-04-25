@@ -1,3 +1,5 @@
+from itertools import product
+
 import numpy as np
 import torch
 
@@ -55,3 +57,46 @@ def softmax(x):
     out._backward = _backward
     out._prev = {x, }
     return out
+
+
+def conv2d(input_, weight, bias=None):
+    """conv2d with stride=1, padding=0, dilation=1, layout channel-first"""
+    # TODO: try implementing using im2col
+
+    B, C_in, H_in, W_in = input_.data.shape
+    C_out, _, K_H, K_W = weight.data.shape
+
+    if bias is not None:
+        assert bias.data.shape == (C_out,), f"{bias.data.shape=} mismatch"
+    else: 
+        bias = Tensor(np.zeros((C_out,)), requires_grad=False)
+
+    H_out = H_in - K_H + 1
+    W_out = W_in - K_W + 1
+
+    input_buf = input_.data 
+    weight_buf = weight.data
+    bias_buf = bias.data
+    out_buf = np.zeros((B, C_out, H_out, W_out))
+    for b, c_out, h_out, w_out in product(range(B), range(C_out), range(H_out), range(W_out)):
+        out_buf[b, c_out, h_out, w_out] = \
+            np.sum(input_buf[b, :, h_out:h_out + K_H, w_out:w_out + K_W] * weight_buf[c_out, :, :, :]) \
+            + bias_buf[c_out]
+
+    out = Tensor(out_buf, requires_grad=input_.requires_grad or filter.requires_grad)
+    
+    def _backward():
+        # TODO: implement
+        if input_.requires_grad:
+            input_.grad += np.zeros_like(input_.data)
+
+        if weight.requires_grad:
+            weight.grad += np.zeros_like(weight.data)
+
+        if bias.requires_grad:
+            bias.grad += np.sum(out.grad, axis=(0, 2, 3))
+
+    out._backward = _backward
+    out._prev = {input_, weight, bias}
+    return out
+
