@@ -48,6 +48,19 @@ def test_softmax():
     np.testing.assert_allclose(x.grad.data, pt_x.grad.detach().numpy(),
                                rtol=1.3e-6, atol=1e-5)
 
+def test_softmax_large_inputs():
+    pt_x = torch.normal(mean=80.0, std=100.0, size=(2, 3), requires_grad=True)
+    x = Tensor.from_torch(pt_x)
+
+    expected = F.softmax(pt_x, dim=-1)
+    result = softmax(x)
+    np.testing.assert_allclose(result.data, expected.detach().numpy(),                               
+                               rtol=1.3e-6, atol=1e-5)
+
+    expected.backward(torch.ones_like(expected))
+    result.backward()
+    np.testing.assert_allclose(x.grad.data, pt_x.grad.detach().numpy(),
+                               rtol=1.3e-6, atol=1e-5)
 
 def test_matmul():
     pt_a = torch.rand((3, 4), requires_grad=True)
