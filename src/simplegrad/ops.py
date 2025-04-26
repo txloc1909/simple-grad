@@ -86,15 +86,22 @@ def conv2d(input_, weight, bias=None):
     out = Tensor(out_buf, requires_grad=input_.requires_grad or filter.requires_grad)
     
     def _backward():
-        # TODO: implement
         if input_.requires_grad:
-            input_.grad += np.zeros_like(input_.data)
+            input_grad = np.zeros_like(input_.data)
+            for b, c_out, h_out, w_out in product(range(B), range(C_out), range(H_out), range(W_out)):
+                input_grad[b, :, h_out:h_out + K_H, w_out:w_out + K_W] += \
+                    weight_buf[c_out, :, :, :] * out.grad[b, c_out, h_out, w_out]
+            input_.grad += input_grad
 
         if weight.requires_grad:
-            weight.grad += np.zeros_like(weight.data)
+            weight_grad = np.zeros_like(weight.data)
+            for b, c_out, h_out, w_out in product(range(B), range(C_out), range(H_out), range(W_out)):
+                weight_grad[c_out, :, :, :] += \
+                    input_buf[b, :, h_out:h_out + K_H, w_out:w_out + K_W] * out.grad[b, c_out, h_out, w_out]
+            weight.grad += weight_grad
 
         if bias.requires_grad:
-            bias.grad += np.sum(out.grad, axis=(0, 2, 3))
+            bias.grad += np.sum(out.grad, axis=(0, 2, 3)) # over B, H_out, W_out  
 
     out._backward = _backward
     out._prev = {input_, weight, bias}
